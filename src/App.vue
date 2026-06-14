@@ -1,0 +1,85 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+const route = useRoute();
+const router = useRouter();
+
+const activeMenu = computed(() => route.path);
+
+/**
+ * 顶部导航切换
+ */
+function handleMenuChange(value: string) {
+  router.push(value);
+}
+</script>
+
+<template>
+  <t-layout class="app-layout">
+    <t-header class="app-header">
+      <div class="header-inner">
+        <div class="brand">
+          <span class="brand-icon">🌿</span>
+          <span class="brand-text">城市阳台种植月历</span>
+        </div>
+        <t-head-menu
+          :value="activeMenu"
+          theme="light"
+          @change="handleMenuChange"
+        >
+          <t-menu-item value="/">月历建议</t-menu-item>
+          <t-menu-item value="/my-plants">我的植物</t-menu-item>
+        </t-head-menu>
+      </div>
+    </t-header>
+    <t-content>
+      <router-view />
+    </t-content>
+  </t-layout>
+</template>
+
+<style scoped>
+.app-layout {
+  min-height: 100vh;
+  background: #f3f6f4;
+}
+
+.app-header {
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.brand-icon {
+  font-size: 22px;
+}
+
+.brand-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #14532d;
+}
+
+:deep(.t-head-menu) {
+  flex: 1;
+  justify-content: flex-end;
+}
+</style>
