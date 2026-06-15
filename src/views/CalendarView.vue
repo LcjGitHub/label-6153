@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { MessagePlugin } from 'tdesign-vue-next';
 import dayjs from 'dayjs';
 import { useCalendarStore } from '@/stores/calendar';
@@ -7,6 +7,10 @@ import { useFavoritesStore } from '@/stores/favorites';
 
 const calendarStore = useCalendarStore();
 const favoritesStore = useFavoritesStore();
+
+onMounted(() => {
+  calendarStore.ensureConsistencyAfterHydrate();
+});
 
 const monthLabel = computed(() =>
   calendarStore.currentMonth.format('YYYY 年 M 月'),

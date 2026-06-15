@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import dayjs from 'dayjs';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import calendarData from '@/mock/planting-calendar.json';
 import type { MonthSuggestion, PlantCatalogItem, PlantingCalendarData } from '@/types';
 import type { BackupPreferences } from '@/utils/importExport';
@@ -11,6 +11,25 @@ export interface CalendarPreferencesImportResult {
   applied: boolean;
   cityValid: boolean;
   plantValid: boolean;
+  categoryValid: boolean;
+}
+
+/**
+ * 校验并修复植物与分类的一致性
+ * 若当前选中植物不属于已选分类，自动切换为该分类下第一个植物
+ */
+function validatePlantCategoryConsistency(
+  category: string,
+  plantId: string,
+): { category: string; plantId: string } {
+  if (!category) return { category, plantId };
+  const filtered = data.plants.filter((p) => p.category === category);
+  if (filtered.length === 0) return { category: '', plantId };
+  const currentValid = filtered.some((p) => p.id === plantId);
+  if (!currentValid) {
+    return { category, plantId: filtered[0].id };
+  }
+  return { category, plantId };
 }
 
 /**
@@ -27,6 +46,8 @@ export const useCalendarStore = defineStore(
 
     const cities = computed(() => data.cities);
 
+    const allPlants = computed(() => data.plants);
+
     const categories = computed(() => {
       const set = new Set(data.plants.map((p) => p.category));
       return Array.from(set);
@@ -42,7 +63,7 @@ export const useCalendarStore = defineStore(
     );
 
     const selectedPlant = computed(
-      () => plants.value.find((p) => p.id === selectedPlantId.value) ?? null,
+      () => allPlants.value.find((p) => p.id === selectedPlantId.value) ?? null,
     );
 
     const currentMonth = computed(() => dayjs(currentMonthISO.value));
@@ -97,14 +118,14 @@ export const useCalendarStore = defineStore(
     }
 
     /**
-     * 按植物名称匹配目录植物
+     * 按植物名称匹配目录植物（在完整植物目录中查找）
      * @param plantName - 植物名称
      */
     function findPlantByName(plantName: string): PlantCatalogItem | null {
       const trimmed = plantName.trim();
       return (
-        plants.value.find((p) => p.name === trimmed) ??
-        plants.value.find((p) => trimmed.includes(p.name) || p.name.includes(trimmed)) ??
+        allPlants.value.find((p) => p.name === trimmed) ??
+        allPlants.value.find((p) => trimmed.includes(p.name) || p.name.includes(trimmed)) ??
         null
       );
     }
@@ -231,21 +252,28 @@ export const useCalendarStore = defineStore(
     /**
      * 导入月历偏好
      * @param prefs - 待导入的偏好
-     * @returns 应用结果，包含城市/植物 ID 是否在当前目录中有效
+     * @returns 应用结果，包含城市/植物/分类是否在当前目录中有效
      */
     function importPreferences(
       prefs: BackupPreferences,
     ): CalendarPreferencesImportResult {
       const cityValid = cities.value.some((c) => c.id === prefs.selectedCityId);
       const plantValid = data.plants.some((p) => p.id === prefs.selectedPlantId);
+      const categoryValid =
+        typeof prefs.selectedCategory !== 'string' ||
+        prefs.selectedCategory === '' ||
+        categories.value.includes(prefs.selectedCategory);
 
       let applied = false;
       if (cityValid && plantValid) {
         selectedCityId.value = prefs.selectedCityId;
-        selectedPlantId.value = prefs.selectedPlantId;
-        if (typeof prefs.selectedCategory === 'string') {
-          selectedCategory.value = prefs.selectedCategory;
+        let category = '';
+        if (typeof prefs.selectedCategory === 'string' && categoryValid) {
+          category = prefs.selectedCategory;
         }
+        const validated = validatePlantCategoryConsistency(category, prefs.selectedPlantId);
+        selectedCategory.value = validated.category;
+        selectedPlantId.value = validated.plantId;
         if (typeof prefs.currentMonthISO === 'string') {
           currentMonthISO.value = prefs.currentMonthISO;
         }
@@ -257,7 +285,7 @@ export const useCalendarStore = defineStore(
         applied = true;
       }
 
-      return { applied, cityValid, plantValid };
+      return { applied, cityValid, plantValid, categoryValid };
     }
 
     /**
@@ -271,6 +299,41 @@ export const useCalendarStore = defineStore(
       selectedDateISO.value = null;
     }
 
+    /**
+     * 持久化恢复后校验分类与植物一致性
+     * pinia-plugin-persistedstate 恢复后触发一次
+     */
+    let hydrated = false;
+    watch(
+      [selectedCategory, selectedPlantId],
+      () => {
+        if (!hydrated) {
+          hydrated = true;
+          return;
+        }
+      },
+      { flush: 'sync' },
+    );
+
+    function ensureConsistencyAfterHydrate() {
+      const categoryValid =
+        selectedCategory.value === '' ||
+        categories.value.includes(selectedCategory.value);
+      const plantValid = allPlants.value.some((p) => p.id === selectedPlantId.value);
+      if (!categoryValid) {
+        selectedCategory.value = '';
+      }
+      if (!plantValid) {
+        selectedPlantId.value = allPlants.value[0]?.id ?? '';
+      }
+      const validated = validatePlantCategoryConsistency(
+        selectedCategory.value,
+        selectedPlantId.value,
+      );
+      selectedCategory.value = validated.category;
+      selectedPlantId.value = validated.plantId;
+    }
+
     return {
       selectedCityId,
       selectedPlantId,
@@ -279,6 +342,7 @@ export const useCalendarStore = defineStore(
       selectedDateISO,
       cities,
       categories,
+      allPlants,
       plants,
       selectedCity,
       selectedPlant,
@@ -301,6 +365,7 @@ export const useCalendarStore = defineStore(
       getPreferences,
       importPreferences,
       resetPreferences,
+      ensureConsistencyAfterHydrate,
     };
   },
   {
