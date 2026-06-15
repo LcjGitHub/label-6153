@@ -22,6 +22,7 @@ export const useCalendarStore = defineStore(
     const selectedCityId = ref(data.cities[0]?.id ?? '');
     const selectedPlantId = ref(data.plants[0]?.id ?? '');
     const currentMonthISO = ref(dayjs().toISOString());
+    const selectedDateISO = ref<string | null>(null);
 
     const cities = computed(() => data.cities);
     const plants = computed(() => data.plants);
@@ -37,6 +38,10 @@ export const useCalendarStore = defineStore(
     const currentMonth = computed(() => dayjs(currentMonthISO.value));
 
     const currentMonthNumber = computed(() => currentMonth.value.month() + 1);
+
+    const selectedDate = computed(() =>
+      selectedDateISO.value ? dayjs(selectedDateISO.value) : null,
+    );
 
     /**
      * 获取指定城市在列表中的下一个城市
@@ -126,49 +131,75 @@ export const useCalendarStore = defineStore(
     }
 
     /**
+     * 设置选中的具体日期
+     * 会同步切换当前显示月份为该日期所属月份
+     */
+    function setSelectedDate(dateISO: string) {
+      const d = dayjs(dateISO);
+      selectedDateISO.value = d.toISOString();
+      currentMonthISO.value = d.startOf('month').toISOString();
+    }
+
+    /**
      * 切换到上一个月
      */
     function goPrevMonth() {
-      currentMonthISO.value = dayjs(currentMonthISO.value)
-        .subtract(1, 'month')
-        .toISOString();
+      const prevMonth = dayjs(currentMonthISO.value).subtract(1, 'month');
+      currentMonthISO.value = prevMonth.toISOString();
+      if (selectedDateISO.value) {
+        const sd = dayjs(selectedDateISO.value);
+        const newDay = Math.min(sd.date(), prevMonth.daysInMonth());
+        selectedDateISO.value = prevMonth.date(newDay).toISOString();
+      }
     }
 
     /**
      * 切换到下一个月
      */
     function goNextMonth() {
-      currentMonthISO.value = dayjs(currentMonthISO.value)
-        .add(1, 'month')
-        .toISOString();
+      const nextMonth = dayjs(currentMonthISO.value).add(1, 'month');
+      currentMonthISO.value = nextMonth.toISOString();
+      if (selectedDateISO.value) {
+        const sd = dayjs(selectedDateISO.value);
+        const newDay = Math.min(sd.date(), nextMonth.daysInMonth());
+        selectedDateISO.value = nextMonth.date(newDay).toISOString();
+      }
     }
 
     /**
      * 回到当月
      */
     function goToday() {
-      currentMonthISO.value = dayjs().toISOString();
+      const today = dayjs();
+      currentMonthISO.value = today.toISOString();
+      selectedDateISO.value = today.toISOString();
     }
 
     /**
      * 日历面板切换月份
      */
     function setPanelMonth(payload: { year: number; month: number }) {
-      currentMonthISO.value = dayjs()
+      const newMonth = dayjs()
         .year(payload.year)
         .month(payload.month - 1)
-        .date(1)
-        .toISOString();
+        .date(1);
+      currentMonthISO.value = newMonth.toISOString();
+      if (selectedDateISO.value) {
+        const sd = dayjs(selectedDateISO.value);
+        const newDay = Math.min(sd.date(), newMonth.daysInMonth());
+        selectedDateISO.value = newMonth.date(newDay).toISOString();
+      }
     }
 
     /**
-     * 获取当前月历偏好（城市、植物、月份），用于备份导出
+     * 获取当前月历偏好（城市、植物、月份、选中日期），用于备份导出
      */
     function getPreferences(): BackupPreferences {
       return {
         selectedCityId: selectedCityId.value,
         selectedPlantId: selectedPlantId.value,
         currentMonthISO: currentMonthISO.value,
+        selectedDateISO: selectedDateISO.value,
       };
     }
 
@@ -190,6 +221,11 @@ export const useCalendarStore = defineStore(
         if (typeof prefs.currentMonthISO === 'string') {
           currentMonthISO.value = prefs.currentMonthISO;
         }
+        if (typeof prefs.selectedDateISO === 'string') {
+          selectedDateISO.value = prefs.selectedDateISO;
+        } else if (prefs.selectedDateISO === null) {
+          selectedDateISO.value = null;
+        }
         applied = true;
       }
 
@@ -203,18 +239,21 @@ export const useCalendarStore = defineStore(
       selectedCityId.value = data.cities[0]?.id ?? '';
       selectedPlantId.value = data.plants[0]?.id ?? '';
       currentMonthISO.value = dayjs().toISOString();
+      selectedDateISO.value = null;
     }
 
     return {
       selectedCityId,
       selectedPlantId,
       currentMonthISO,
+      selectedDateISO,
       cities,
       plants,
       selectedCity,
       selectedPlant,
       currentMonth,
       currentMonthNumber,
+      selectedDate,
       getNextCityId,
       getSuggestionForMonth,
       getSuggestionForCityPlantMonth,
@@ -222,6 +261,7 @@ export const useCalendarStore = defineStore(
       getSuggestionForCityPlantNameMonth,
       setCity,
       setPlant,
+      setSelectedDate,
       goPrevMonth,
       goNextMonth,
       goToday,
@@ -238,6 +278,7 @@ export const useCalendarStore = defineStore(
         'selectedCityId',
         'selectedPlantId',
         'currentMonthISO',
+        'selectedDateISO',
       ],
     },
   },

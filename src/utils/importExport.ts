@@ -7,6 +7,7 @@ export interface BackupPreferences {
   selectedCityId: string;
   selectedPlantId: string;
   currentMonthISO: string;
+  selectedDateISO?: string | null;
 }
 
 export interface BackupData {

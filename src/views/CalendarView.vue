@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { MessagePlugin } from 'tdesign-vue-next';
+import dayjs from 'dayjs';
 import { useCalendarStore } from '@/stores/calendar';
 import { useFavoritesStore } from '@/stores/favorites';
 
@@ -10,6 +11,13 @@ const favoritesStore = useFavoritesStore();
 const monthLabel = computed(() =>
   calendarStore.currentMonth.format('YYYY 年 M 月'),
 );
+
+const dateLabel = computed(() => {
+  if (calendarStore.selectedDate) {
+    return calendarStore.selectedDate.format('YYYY 年 M 月 D 日');
+  }
+  return monthLabel.value;
+});
 
 const suggestion = computed(() =>
   calendarStore.getSuggestionForMonth(calendarStore.currentMonthNumber),
@@ -41,6 +49,18 @@ const isCurrentFavorite = computed(() =>
  */
 function handlePanelChange(payload: { year: number; month: number }) {
   calendarStore.setPanelMonth(payload);
+}
+
+/**
+ * 点击日历中的具体日期
+ */
+function handleSelectDate(payload: { year: number; month: number; date: number }) {
+  const dateISO = dayjs()
+    .year(payload.year)
+    .month(payload.month - 1)
+    .date(payload.date)
+    .toISOString();
+  calendarStore.setSelectedDate(dateISO);
 }
 
 /**
@@ -119,7 +139,7 @@ function handleAddFavorite() {
             <t-tag theme="primary" variant="light">
               {{ calendarStore.selectedPlant?.name ?? '—' }}
             </t-tag>
-            <t-tag theme="default" variant="outline">{{ monthLabel }}</t-tag>
+            <t-tag theme="default" variant="outline">{{ dateLabel }}</t-tag>
           </div>
         </div>
       </t-col>
@@ -140,12 +160,13 @@ function handleAddFavorite() {
             :month="calendarStore.currentMonthNumber"
             :fill-with-zero="true"
             @month-change="handlePanelChange"
+            @select="handleSelectDate"
           />
 
           <t-divider />
 
           <div v-if="suggestion" class="suggestion-panel">
-            <h3 class="suggestion-title">{{ monthLabel }} 养护建议</h3>
+            <h3 class="suggestion-title">{{ dateLabel }} 养护建议</h3>
             <t-row :gutter="[12, 12]">
               <t-col :span="12">
                 <t-card :bordered="true" size="small" title="🌱 播种建议">
