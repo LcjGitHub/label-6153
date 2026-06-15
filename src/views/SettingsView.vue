@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { MessagePlugin, DialogPlugin } from 'tdesign-vue-next';
 import { usePlantsStore } from '@/stores/plants';
 import { useCareRecordsStore } from '@/stores/careRecords';
@@ -20,6 +21,7 @@ const plantsStore = usePlantsStore();
 const careRecordsStore = useCareRecordsStore();
 const favoritesStore = useFavoritesStore();
 const calendarStore = useCalendarStore();
+const router = useRouter();
 
 const isExporting = ref(false);
 const isImporting = ref(false);
@@ -163,6 +165,10 @@ function handleUploadChange(fileInfo: { files: File[] }) {
     <div class="page-header">
       <h1 class="page-title">设置</h1>
       <p class="page-desc">管理你的植物数据备份与恢复、偏好设置等</p>
+      <t-button variant="text" class="help-link" @click="router.push('/help')">
+        <template #icon><t-icon name="help-circle" /></template>
+        查看使用帮助
+      </t-button>
     </div>
 
     <section class="card">
@@ -349,6 +355,13 @@ function handleUploadChange(fileInfo: { files: File[] }) {
 .page-desc {
   margin: 0;
   color: #64748b;
+  font-size: 14px;
+}
+
+.help-link {
+  margin-top: 8px;
+  padding: 0;
+  color: #16a34a;
   font-size: 14px;
 }
 

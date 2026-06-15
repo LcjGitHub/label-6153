@@ -71,6 +71,12 @@ const router = createRouter({
       component: () => import('@/views/SettingsView.vue'),
       meta: { title: '设置' },
     },
+    {
+      path: '/help',
+      name: 'help',
+      component: () => import('@/views/HelpView.vue'),
+      meta: { title: '使用帮助' },
+    },
   ],
 });
 
