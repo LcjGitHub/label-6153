@@ -4,17 +4,21 @@ import dayjs from 'dayjs';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { useForm } from 'vee-validate';
 import { computed, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { careRecordFormSchema, type CareRecordFormValues } from '@/schemas/careRecordForm';
 import { useCareRecordsStore } from '@/stores/careRecords';
 import { usePlantsStore } from '@/stores/plants';
 import type { CareType } from '@/types';
 
+const router = useRouter();
 const plantsStore = usePlantsStore();
 const careRecordsStore = useCareRecordsStore();
 
 const dialogVisible = ref(false);
 const deleteConfirmVisible = ref(false);
 const deletingId = ref<string | null>(null);
+
+const hasPlants = computed(() => plantsStore.items.length > 0);
 
 const plantOptions = computed(() =>
   plantsStore.items.map((plant) => ({
@@ -70,7 +74,7 @@ function openCreateDialog() {
   dialogVisible.value = true;
 }
 
-const onSubmit = handleSubmit((values: CareRecordFormValues) => {
+const onSubmit = handleSubmit(async (values: CareRecordFormValues) => {
   const plant = plantsStore.findById(values.plantId);
   if (!plant) {
     MessagePlugin.error('植物不存在');
@@ -110,6 +114,10 @@ function closeDialog() {
 function formatCareType(type: CareType) {
   return careTypeLabelMap[type] ?? type;
 }
+
+function goToMyPlants() {
+  router.push('/my-plants');
+}
 </script>
 
 <template>
@@ -122,12 +130,18 @@ function formatCareType(type: CareType) {
       <t-button theme="primary" @click="openCreateDialog">添加记录</t-button>
     </div>
 
+    <t-alert v-if="!hasPlants" theme="warning" :close-btn="false" class="empty-alert">
+      <template #message>
+        还没有植物，<t-link theme="primary" @click="goToMyPlants">请先到我的植物页面添加植物</t-link>
+      </template>
+    </t-alert>
+
     <div class="card-block">
       <t-table
         row-key="id"
         :data="careRecordsStore.sortedItems"
         :columns="tableColumns"
-        :empty="'暂无养护记录，点击右上角添加'"
+        :empty="hasPlants ? '暂无养护记录，点击右上角添加' : '暂无养护记录'"
         stripe
         hover
       >
@@ -151,30 +165,32 @@ function formatCareType(type: CareType) {
       width="480px"
       destroy-on-close
     >
-      <t-form label-align="top" @submit.prevent="onSubmit">
+      <t-form v-if="hasPlants" label-align="top" @submit.prevent="onSubmit">
         <t-form-item label="选择植物" :status="errors.plantId ? 'error' : undefined" :tips="errors.plantId">
           <t-select
             v-model="plantId"
-            v-bind="plantIdAttrs"
             :options="plantOptions"
             placeholder="请选择植物"
             clearable
+            @blur="plantIdAttrs.onBlur"
+            @change="plantIdAttrs.onChange"
           />
         </t-form-item>
 
         <t-form-item label="记录日期" :status="errors.date ? 'error' : undefined" :tips="errors.date">
           <t-date-picker
             v-model="date"
-            v-bind="dateAttrs"
             format="YYYY-MM-DD"
             value-type="YYYY-MM-DD"
             style="width: 100%"
             clearable
+            @blur="dateAttrs.onBlur"
+            @change="dateAttrs.onChange"
           />
         </t-form-item>
 
         <t-form-item label="养护类型" :status="errors.type ? 'error' : undefined" :tips="errors.type">
-          <t-radio-group v-model="type" v-bind="typeAttrs">
+          <t-radio-group v-model="type" @change="typeAttrs.onChange">
             <t-radio-button v-for="option in careTypeOptions" :key="option.value" :value="option.value">
               {{ option.label }}
             </t-radio-button>
@@ -184,9 +200,10 @@ function formatCareType(type: CareType) {
         <t-form-item label="备注" :status="errors.remark ? 'error' : undefined" :tips="errors.remark">
           <t-textarea
             v-model="remark"
-            v-bind="remarkAttrs"
             placeholder="请输入备注（不超过 50 字）"
             :autosize="{ minRows: 3, maxRows: 5 }"
+            @blur="remarkAttrs.onBlur"
+            @change="remarkAttrs.onChange"
           />
         </t-form-item>
 
@@ -197,6 +214,12 @@ function formatCareType(type: CareType) {
           </t-space>
         </t-form-item>
       </t-form>
+
+      <div v-else class="empty-plants-tip">
+        <t-empty description="请先到我的植物页面添加植物">
+          <t-button theme="primary" @click="closeDialog; goToMyPlants()">去添加植物</t-button>
+        </t-empty>
+      </div>
     </t-dialog>
 
     <t-dialog
@@ -217,5 +240,13 @@ function formatCareType(type: CareType) {
   gap: 16px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+}
+
+.empty-alert {
+  margin-bottom: 16px;
+}
+
+.empty-plants-tip {
+  padding: 24px 0;
 }
 </style>
