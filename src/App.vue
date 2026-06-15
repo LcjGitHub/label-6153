@@ -36,6 +36,7 @@ function handleMenuChange(value: string) {
           <t-menu-item value="/my-plants">我的植物</t-menu-item>
           <t-menu-item value="/care-records">养护记录</t-menu-item>
           <t-menu-item value="/care-stats">养护统计</t-menu-item>
+          <t-menu-item value="/weekly-care-tips">本周养护提示</t-menu-item>
           <t-menu-item value="/settings">设置</t-menu-item>
         </t-head-menu>
       </div>

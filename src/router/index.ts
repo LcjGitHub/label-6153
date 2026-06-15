@@ -42,6 +42,12 @@ const router = createRouter({
       meta: { title: '养护数据统计' },
     },
     {
+      path: '/weekly-care-tips',
+      name: 'weekly-care-tips',
+      component: () => import('@/views/WeeklyCareTipsView.vue'),
+      meta: { title: '本周养护提示' },
+    },
+    {
       path: '/city-compare',
       name: 'city-compare',
       component: () => import('@/views/CityCompareView.vue'),

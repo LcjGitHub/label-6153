@@ -62,3 +62,18 @@ export interface PlantingCalendarData {
   plants: PlantCatalogItem[];
   suggestions: Record<string, Record<string, Record<string, MonthSuggestion>>>;
 }
+
+/** 单株植物本周养护提示 */
+export interface WeeklyCareTip {
+  plantId: string;
+  plantName: string;
+  plantVariety: string;
+  catalogPlant: PlantCatalogItem | null;
+  matched: boolean;
+  tip: string;
+  needWaterAttention: boolean;
+  needFertilizeAttention: boolean;
+  waterAdvice: string;
+  fertilizeAdvice: string;
+  sowAdvice: string;
+}
