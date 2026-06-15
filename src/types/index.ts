@@ -51,6 +51,11 @@ export interface FavoriteCombination {
   createdAt: string;
 }
 
+/** 植物全年 12 个月种植建议，key 为月份 1-12 */
+export interface YearlyPlantSuggestions {
+  [month: number]: MonthSuggestion;
+}
+
 /** 种植月历 Mock 数据结构 */
 export interface PlantingCalendarData {
   cities: City[];

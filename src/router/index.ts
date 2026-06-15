@@ -54,6 +54,12 @@ const router = createRouter({
       meta: { title: '我的收藏' },
     },
     {
+      path: '/encyclopedia',
+      name: 'encyclopedia',
+      component: () => import('@/views/EncyclopediaView.vue'),
+      meta: { title: '植物百科' },
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),

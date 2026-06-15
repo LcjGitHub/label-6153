@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import dayjs from 'dayjs';
 import { computed, ref, watch } from 'vue';
 import calendarData from '@/mock/planting-calendar.json';
-import type { MonthSuggestion, PlantCatalogItem, PlantingCalendarData } from '@/types';
+import type { MonthSuggestion, PlantCatalogItem, PlantingCalendarData, YearlyPlantSuggestions } from '@/types';
 import type { BackupPreferences } from '@/utils/importExport';
 
 const data = calendarData as PlantingCalendarData;
@@ -115,6 +115,49 @@ export const useCalendarStore = defineStore(
       if (!plantSuggestions) return null;
 
       return plantSuggestions[String(month)] ?? null;
+    }
+
+    /**
+     * 获取指定城市下某植物全年 12 个月的种植建议
+     * @param cityId - 城市 ID
+     * @param plantId - 植物 ID
+     */
+    function getYearlySuggestions(
+      cityId: string,
+      plantId: string,
+    ): YearlyPlantSuggestions {
+      const result: YearlyPlantSuggestions = {};
+      for (let month = 1; month <= 12; month++) {
+        const suggestion = getSuggestionForCityPlantMonth(cityId, plantId, month);
+        if (suggestion) {
+          result[month] = suggestion;
+        }
+      }
+      return result;
+    }
+
+    /**
+     * 获取所有植物分类列表
+     */
+    function getAllCategories(): string[] {
+      return categories.value;
+    }
+
+    /**
+     * 按分类筛选植物目录
+     * @param category - 分类名称，空字符串表示全部
+     */
+    function getPlantsByCategory(category: string): PlantCatalogItem[] {
+      if (!category) return allPlants.value;
+      return allPlants.value.filter((p) => p.category === category);
+    }
+
+    /**
+     * 根据植物 ID 获取目录项
+     * @param plantId - 植物 ID
+     */
+    function findPlantById(plantId: string): PlantCatalogItem | null {
+      return allPlants.value.find((p) => p.id === plantId) ?? null;
     }
 
     /**
@@ -368,6 +411,10 @@ export const useCalendarStore = defineStore(
       getNextCityId,
       getSuggestionForMonth,
       getSuggestionForCityPlantMonth,
+      getYearlySuggestions,
+      getAllCategories,
+      getPlantsByCategory,
+      findPlantById,
       findPlantByName,
       getSuggestionForCityPlantNameMonth,
       setCity,

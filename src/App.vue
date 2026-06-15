@@ -29,6 +29,7 @@ function handleMenuChange(value: string) {
           @change="handleMenuChange"
         >
           <t-menu-item value="/">月历建议</t-menu-item>
+          <t-menu-item value="/encyclopedia">植物百科</t-menu-item>
           <t-menu-item value="/dashboard">植物总览看板</t-menu-item>
           <t-menu-item value="/city-compare">双城对比</t-menu-item>
           <t-menu-item value="/favorites">我的收藏</t-menu-item>
