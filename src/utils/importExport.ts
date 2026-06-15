@@ -6,6 +6,7 @@ export const BACKUP_FILE_MAGIC = 'balcony-garden-backup';
 export interface BackupPreferences {
   selectedCityId: string;
   selectedPlantId: string;
+  selectedCategory?: string;
   currentMonthISO: string;
   selectedDateISO?: string | null;
 }

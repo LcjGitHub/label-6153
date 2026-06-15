@@ -21,11 +21,21 @@ export const useCalendarStore = defineStore(
   () => {
     const selectedCityId = ref(data.cities[0]?.id ?? '');
     const selectedPlantId = ref(data.plants[0]?.id ?? '');
+    const selectedCategory = ref<string>('');
     const currentMonthISO = ref(dayjs().toISOString());
     const selectedDateISO = ref<string | null>(null);
 
     const cities = computed(() => data.cities);
-    const plants = computed(() => data.plants);
+
+    const categories = computed(() => {
+      const set = new Set(data.plants.map((p) => p.category));
+      return Array.from(set);
+    });
+
+    const plants = computed(() => {
+      if (!selectedCategory.value) return data.plants;
+      return data.plants.filter((p) => p.category === selectedCategory.value);
+    });
 
     const selectedCity = computed(
       () => cities.value.find((c) => c.id === selectedCityId.value) ?? null,
@@ -131,6 +141,21 @@ export const useCalendarStore = defineStore(
     }
 
     /**
+     * 设置选中的植物分类
+     * 若当前已选植物不在该分类内则自动切换为该分类下第一个植物
+     */
+    function setCategory(category: string) {
+      selectedCategory.value = category;
+      if (category) {
+        const filtered = data.plants.filter((p) => p.category === category);
+        const currentValid = filtered.some((p) => p.id === selectedPlantId.value);
+        if (!currentValid && filtered.length > 0) {
+          selectedPlantId.value = filtered[0].id;
+        }
+      }
+    }
+
+    /**
      * 设置选中的具体日期
      * 会同步切换当前显示月份为该日期所属月份
      */
@@ -191,12 +216,13 @@ export const useCalendarStore = defineStore(
     }
 
     /**
-     * 获取当前月历偏好（城市、植物、月份、选中日期），用于备份导出
+     * 获取当前月历偏好（城市、植物、分类、月份、选中日期），用于备份导出
      */
     function getPreferences(): BackupPreferences {
       return {
         selectedCityId: selectedCityId.value,
         selectedPlantId: selectedPlantId.value,
+        selectedCategory: selectedCategory.value,
         currentMonthISO: currentMonthISO.value,
         selectedDateISO: selectedDateISO.value,
       };
@@ -211,12 +237,15 @@ export const useCalendarStore = defineStore(
       prefs: BackupPreferences,
     ): CalendarPreferencesImportResult {
       const cityValid = cities.value.some((c) => c.id === prefs.selectedCityId);
-      const plantValid = plants.value.some((p) => p.id === prefs.selectedPlantId);
+      const plantValid = data.plants.some((p) => p.id === prefs.selectedPlantId);
 
       let applied = false;
       if (cityValid && plantValid) {
         selectedCityId.value = prefs.selectedCityId;
         selectedPlantId.value = prefs.selectedPlantId;
+        if (typeof prefs.selectedCategory === 'string') {
+          selectedCategory.value = prefs.selectedCategory;
+        }
         if (typeof prefs.currentMonthISO === 'string') {
           currentMonthISO.value = prefs.currentMonthISO;
         }
@@ -237,6 +266,7 @@ export const useCalendarStore = defineStore(
     function resetPreferences(): void {
       selectedCityId.value = data.cities[0]?.id ?? '';
       selectedPlantId.value = data.plants[0]?.id ?? '';
+      selectedCategory.value = '';
       currentMonthISO.value = dayjs().toISOString();
       selectedDateISO.value = null;
     }
@@ -244,9 +274,11 @@ export const useCalendarStore = defineStore(
     return {
       selectedCityId,
       selectedPlantId,
+      selectedCategory,
       currentMonthISO,
       selectedDateISO,
       cities,
+      categories,
       plants,
       selectedCity,
       selectedPlant,
@@ -260,6 +292,7 @@ export const useCalendarStore = defineStore(
       getSuggestionForCityPlantNameMonth,
       setCity,
       setPlant,
+      setCategory,
       setSelectedDate,
       goPrevMonth,
       goNextMonth,
@@ -276,6 +309,7 @@ export const useCalendarStore = defineStore(
       pick: [
         'selectedCityId',
         'selectedPlantId',
+        'selectedCategory',
         'currentMonthISO',
         'selectedDateISO',
       ],

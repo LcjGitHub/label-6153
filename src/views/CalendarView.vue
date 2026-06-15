@@ -30,6 +30,14 @@ const cityOptions = computed(() =>
   })),
 );
 
+const categoryOptions = computed(() => {
+  const options = calendarStore.categories.map((cat) => ({
+    label: cat,
+    value: cat,
+  }));
+  return [{ label: '全部分类', value: '' }, ...options];
+});
+
 const plantOptions = computed(() =>
   calendarStore.plants.map((plant) => ({
     label: `${plant.name} · ${plant.category}`,
@@ -113,6 +121,14 @@ function handleAddFavorite() {
                 placeholder="请选择城市"
                 filterable
                 @change="calendarStore.setCity"
+              />
+            </t-form-item>
+            <t-form-item label="植物分类">
+              <t-select
+                :value="calendarStore.selectedCategory"
+                :options="categoryOptions"
+                placeholder="请选择分类"
+                @change="calendarStore.setCategory"
               />
             </t-form-item>
             <t-form-item label="植物种类">
