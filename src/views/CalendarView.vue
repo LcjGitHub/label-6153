@@ -2,13 +2,14 @@
 import { computed, onMounted, ref } from 'vue';
 import { MessagePlugin } from 'tdesign-vue-next';
 import dayjs from 'dayjs';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useCalendarStore } from '@/stores/calendar';
 import { useFavoritesStore } from '@/stores/favorites';
 
 const calendarStore = useCalendarStore();
 const favoritesStore = useFavoritesStore();
 const route = useRoute();
+const router = useRouter();
 
 const plantMatchFailed = ref(false);
 const failedPlantName = ref('');
@@ -26,6 +27,11 @@ function handlePlantNameFromRoute() {
       failedPlantName.value = plantName;
       plantMatchFailed.value = true;
     }
+    router.replace({
+      name: route.name as string,
+      query: {},
+      params: route.params,
+    });
   }
 }
 

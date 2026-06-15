@@ -7,7 +7,15 @@ const router = createRouter({
       path: '/',
       name: 'calendar',
       component: () => import('@/views/CalendarView.vue'),
-      meta: { title: '月历建议' },
+      meta: {
+        title: '月历建议',
+        acceptsQuery: {
+          plantName: {
+            type: 'string',
+            description: '植物名称，用于跳转后自动选中同名植物（仅精确匹配），处理完成后自动清除',
+          },
+        },
+      },
     },
     {
       path: '/dashboard',

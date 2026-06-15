@@ -162,12 +162,13 @@ export const useCalendarStore = defineStore(
     }
 
     /**
-     * 按植物名称选中目录中的植物
+     * 按植物名称选中目录中的植物（仅精确同名匹配）
      * @param plantName - 植物名称
      * @returns 是否匹配成功
      */
     function setPlantByName(plantName: string): boolean {
-      const plant = findPlantByName(plantName);
+      const trimmed = plantName.trim();
+      const plant = allPlants.value.find((p) => p.name === trimmed) ?? null;
       if (plant) {
         selectedPlantId.value = plant.id;
         selectedCategory.value = plant.category;
