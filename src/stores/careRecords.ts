@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import type { CareRecord } from '@/types';
 import type { ImportMode } from '@/utils/importExport';
+import { calculateCareStats, type CareStatsSummary } from '@/utils/careStats';
 
 export interface CareRecordsImportResult {
   added: number;
@@ -82,9 +83,18 @@ export const useCareRecordsStore = defineStore(
       return before - items.value.length;
     }
 
+    const statsSummary = computed<CareStatsSummary>(() => {
+      return calculateCareStats(items.value);
+    });
+
+    function getStatsSummary(): CareStatsSummary {
+      return calculateCareStats(items.value);
+    }
+
     return {
       items,
       sortedItems,
+      statsSummary,
       addRecord,
       removeRecord,
       findById,
@@ -93,6 +103,7 @@ export const useCareRecordsStore = defineStore(
       importCareRecords,
       clearAll,
       removeByPlantId,
+      getStatsSummary,
     };
   },
   {
