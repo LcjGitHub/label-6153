@@ -68,10 +68,7 @@ function confirmDelete() {
           <div class="card-main">
             <div class="favorite-title">
               <span class="star-icon">★</span>
-              <span class="plant-name">{{ item.plantName }}</span>
-            </div>
-            <div class="favorite-city">
-              <t-tag theme="success" variant="light">{{ item.cityName }}</t-tag>
+              <span class="combo-name">{{ item.cityName }} · {{ item.plantName }}</span>
             </div>
           </div>
           <div class="card-footer">
@@ -156,13 +153,8 @@ function confirmDelete() {
   font-size: 20px;
 }
 
-.plant-name {
+.combo-name {
   flex: 1;
-}
-
-.favorite-city {
-  display: flex;
-  align-items: center;
 }
 
 .card-footer {

@@ -103,6 +103,7 @@ function handleAddFavorite() {
           <t-button
             :theme="isCurrentFavorite ? 'default' : 'warning'"
             variant="outline"
+            :disabled="isCurrentFavorite"
             block
             @click="handleAddFavorite"
           >
