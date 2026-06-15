@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import { useCalendarStore } from '@/stores/calendar';
 import { usePlantsStore } from '@/stores/plants';
 import type { MonthSuggestion, PlantCatalogItem, UserPlant } from '@/types';
+import SuggestionBlock from '@/components/SuggestionBlock.vue';
 
 const calendarStore = useCalendarStore();
 const plantsStore = usePlantsStore();
@@ -131,32 +132,12 @@ const hasPlants = computed(() => plantsStore.items.length > 0);
             <span class="plant-variety">品种：{{ card.userPlant.variety }}</span>
           </template>
 
-          <div v-if="card.suggestion" class="suggestion-list">
-            <div class="suggestion-item sow">
-              <div class="suggestion-icon">🌱</div>
-              <div class="suggestion-content">
-                <div class="suggestion-label">播种建议</div>
-                <div class="suggestion-text">{{ card.suggestion.sow }}</div>
-              </div>
-            </div>
-            <div class="suggestion-item water">
-              <div class="suggestion-icon">💧</div>
-              <div class="suggestion-content">
-                <div class="suggestion-label">浇水建议</div>
-                <div class="suggestion-text">{{ card.suggestion.water }}</div>
-              </div>
-            </div>
-            <div class="suggestion-item fertilize">
-              <div class="suggestion-icon">🧪</div>
-              <div class="suggestion-content">
-                <div class="suggestion-label">施肥建议</div>
-                <div class="suggestion-text">{{ card.suggestion.fertilize }}</div>
-              </div>
-            </div>
-          </div>
-          <div v-else class="no-suggestion">
-            <t-empty title="暂无月历建议" :description="null" size="small" />
-          </div>
+          <SuggestionBlock
+            :suggestion="card.suggestion"
+            :city-name="calendarStore.selectedCity?.name"
+            :plant-name="card.userPlant.name"
+            mode="inline"
+          />
         </t-card>
       </div>
     </template>
@@ -215,64 +196,5 @@ const hasPlants = computed(() => plantsStore.items.length > 0);
 .plant-variety {
   font-size: 12px;
   color: #64748b;
-}
-
-.suggestion-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.suggestion-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-}
-
-.suggestion-item.sow {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-}
-
-.suggestion-item.water {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-}
-
-.suggestion-item.fertilize {
-  background: #fffbeb;
-  border-color: #fde68a;
-}
-
-.suggestion-icon {
-  font-size: 20px;
-  flex-shrink: 0;
-  line-height: 1.2;
-}
-
-.suggestion-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.suggestion-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 2px;
-}
-
-.suggestion-text {
-  font-size: 13px;
-  color: #475569;
-  line-height: 1.5;
-}
-
-.no-suggestion {
-  padding: 20px 0;
 }
 </style>

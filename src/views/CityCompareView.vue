@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useCalendarStore } from '@/stores/calendar';
+import SuggestionBlock from '@/components/SuggestionBlock.vue';
 
 const calendarStore = useCalendarStore();
 
@@ -135,18 +136,13 @@ function swapCities() {
             </t-tag>
           </div>
 
-          <template v-if="city1Suggestion">
-            <t-card :bordered="true" size="small" title="🌱 播种建议" class="suggestion-card">
-              <p>{{ city1Suggestion.sow }}</p>
-            </t-card>
-            <t-card :bordered="true" size="small" title="💧 浇水建议" class="suggestion-card">
-              <p>{{ city1Suggestion.water }}</p>
-            </t-card>
-            <t-card :bordered="true" size="small" title="🧪 施肥建议" class="suggestion-card">
-              <p>{{ city1Suggestion.fertilize }}</p>
-            </t-card>
-          </template>
-          <t-empty v-else description="该城市暂无此植物的当月建议" />
+          <SuggestionBlock
+            :suggestion="city1Suggestion"
+            :city-name="city1?.name"
+            :plant-name="calendarStore.selectedPlant?.name"
+            mode="card"
+            card-layout="stack"
+          />
         </div>
       </t-col>
 
@@ -159,18 +155,13 @@ function swapCities() {
             </t-tag>
           </div>
 
-          <template v-if="city2Suggestion">
-            <t-card :bordered="true" size="small" title="🌱 播种建议" class="suggestion-card">
-              <p>{{ city2Suggestion.sow }}</p>
-            </t-card>
-            <t-card :bordered="true" size="small" title="💧 浇水建议" class="suggestion-card">
-              <p>{{ city2Suggestion.water }}</p>
-            </t-card>
-            <t-card :bordered="true" size="small" title="🧪 施肥建议" class="suggestion-card">
-              <p>{{ city2Suggestion.fertilize }}</p>
-            </t-card>
-          </template>
-          <t-empty v-else description="该城市暂无此植物的当月建议" />
+          <SuggestionBlock
+            :suggestion="city2Suggestion"
+            :city-name="city2?.name"
+            :plant-name="calendarStore.selectedPlant?.name"
+            mode="card"
+            card-layout="stack"
+          />
         </div>
       </t-col>
     </t-row>
@@ -216,20 +207,5 @@ function swapCities() {
   font-size: 18px;
   font-weight: 600;
   color: #14532d;
-}
-
-.suggestion-card {
-  margin-bottom: 12px;
-}
-
-.suggestion-card:last-child {
-  margin-bottom: 0;
-}
-
-.suggestion-card p {
-  margin: 0;
-  line-height: 1.6;
-  color: #475569;
-  font-size: 14px;
 }
 </style>

@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { useRoute, useRouter } from 'vue-router';
 import { useCalendarStore } from '@/stores/calendar';
 import { useFavoritesStore } from '@/stores/favorites';
+import SuggestionBlock from '@/components/SuggestionBlock.vue';
 
 const calendarStore = useCalendarStore();
 const favoritesStore = useFavoritesStore();
@@ -224,27 +225,16 @@ function handleAddFavorite() {
 
           <t-divider />
 
-          <div v-if="suggestion" class="suggestion-panel">
+          <div class="suggestion-panel">
             <h3 class="suggestion-title">{{ dateLabel }} 养护建议</h3>
-            <t-row :gutter="[12, 12]">
-              <t-col :span="12">
-                <t-card :bordered="true" size="small" title="🌱 播种建议">
-                  <p>{{ suggestion.sow }}</p>
-                </t-card>
-              </t-col>
-              <t-col :span="12">
-                <t-card :bordered="true" size="small" title="💧 浇水建议">
-                  <p>{{ suggestion.water }}</p>
-                </t-card>
-              </t-col>
-              <t-col :span="12">
-                <t-card :bordered="true" size="small" title="🧪 施肥建议">
-                  <p>{{ suggestion.fertilize }}</p>
-                </t-card>
-              </t-col>
-            </t-row>
+            <SuggestionBlock
+              :suggestion="suggestion"
+              :city-name="calendarStore.selectedCity?.name"
+              :plant-name="calendarStore.selectedPlant?.name"
+              mode="card"
+              card-layout="grid"
+            />
           </div>
-          <t-empty v-else description="暂无该组合下的当月建议" />
         </div>
       </t-col>
     </t-row>
@@ -286,13 +276,6 @@ function handleAddFavorite() {
   font-size: 16px;
   font-weight: 600;
   color: #334155;
-}
-
-.suggestion-panel p {
-  margin: 0;
-  line-height: 1.6;
-  color: #475569;
-  font-size: 14px;
 }
 
 :deep(.t-calendar) {
