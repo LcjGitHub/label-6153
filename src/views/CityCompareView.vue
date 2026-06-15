@@ -1,19 +1,16 @@
 <script setup lang="ts">
-import dayjs from 'dayjs';
 import { computed, ref } from 'vue';
 import { useCalendarStore } from '@/stores/calendar';
 
 const calendarStore = useCalendarStore();
 
-const currentMonth = ref(dayjs());
+const monthLabel = computed(() =>
+  calendarStore.currentMonth.format('YYYY 年 M 月'),
+);
 
-const monthLabel = computed(() => currentMonth.value.format('YYYY 年 M 月'));
-
-const currentMonthNumber = computed(() => currentMonth.value.month() + 1);
-
-const city1Id = ref(calendarStore.cities[0]?.id ?? '');
-const city2Id = ref(calendarStore.cities[1]?.id ?? '');
-const plantId = ref(calendarStore.plants[0]?.id ?? '');
+const city1Id = ref(calendarStore.selectedCityId);
+const city2Id = ref(calendarStore.getNextCityId(calendarStore.selectedCityId));
+const plantId = ref(calendarStore.selectedPlantId);
 
 const cityOptions = computed(() =>
   calendarStore.cities.map((city) => ({
@@ -41,7 +38,7 @@ const city1Suggestion = computed(() =>
   calendarStore.getSuggestionForCityPlantMonth(
     city1Id.value,
     plantId.value,
-    currentMonthNumber.value,
+    calendarStore.currentMonthNumber,
   ),
 );
 
@@ -49,22 +46,13 @@ const city2Suggestion = computed(() =>
   calendarStore.getSuggestionForCityPlantMonth(
     city2Id.value,
     plantId.value,
-    currentMonthNumber.value,
+    calendarStore.currentMonthNumber,
   ),
 );
 
-function goPrevMonth() {
-  currentMonth.value = currentMonth.value.subtract(1, 'month');
-}
-
-function goNextMonth() {
-  currentMonth.value = currentMonth.value.add(1, 'month');
-}
-
-function goToday() {
-  currentMonth.value = dayjs();
-}
-
+/**
+ * 交换两个对比城市
+ */
 function swapCities() {
   const temp = city1Id.value;
   city1Id.value = city2Id.value;
@@ -129,9 +117,9 @@ function swapCities() {
 
       <div class="compare-toolbar">
         <t-space>
-          <t-button variant="outline" @click="goPrevMonth">上月</t-button>
-          <t-button theme="primary" variant="outline" @click="goToday">本月</t-button>
-          <t-button variant="outline" @click="goNextMonth">下月</t-button>
+          <t-button variant="outline" @click="calendarStore.goPrevMonth">上月</t-button>
+          <t-button theme="primary" variant="outline" @click="calendarStore.goToday">本月</t-button>
+          <t-button variant="outline" @click="calendarStore.goNextMonth">下月</t-button>
         </t-space>
         <span class="compare-month">{{ monthLabel }}</span>
       </div>

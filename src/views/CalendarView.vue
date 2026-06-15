@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import dayjs from 'dayjs';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useCalendarStore } from '@/stores/calendar';
 
 const calendarStore = useCalendarStore();
 
-const currentMonth = ref(dayjs());
-
-const monthLabel = computed(() => currentMonth.value.format('YYYY 年 M 月'));
-
-const currentMonthNumber = computed(() => currentMonth.value.month() + 1);
+const monthLabel = computed(() =>
+  calendarStore.currentMonth.format('YYYY 年 M 月'),
+);
 
 const suggestion = computed(() =>
-  calendarStore.getSuggestionForMonth(currentMonthNumber.value),
+  calendarStore.getSuggestionForMonth(calendarStore.currentMonthNumber),
 );
 
 const cityOptions = computed(() =>
@@ -30,34 +27,10 @@ const plantOptions = computed(() =>
 );
 
 /**
- * 切换到上一个月
- */
-function goPrevMonth() {
-  currentMonth.value = currentMonth.value.subtract(1, 'month');
-}
-
-/**
- * 切换到下一个月
- */
-function goNextMonth() {
-  currentMonth.value = currentMonth.value.add(1, 'month');
-}
-
-/**
- * 回到当月
- */
-function goToday() {
-  currentMonth.value = dayjs();
-}
-
-/**
  * 日历面板切换月份
  */
 function handlePanelChange(payload: { year: number; month: number }) {
-  currentMonth.value = dayjs()
-    .year(payload.year)
-    .month(payload.month - 1)
-    .date(1);
+  calendarStore.setPanelMonth(payload);
 }
 </script>
 
@@ -110,16 +83,16 @@ function handlePanelChange(payload: { year: number; month: number }) {
         <div class="card-block calendar-card">
           <div class="calendar-toolbar">
             <t-space>
-              <t-button variant="outline" @click="goPrevMonth">上月</t-button>
-              <t-button theme="primary" variant="outline" @click="goToday">本月</t-button>
-              <t-button variant="outline" @click="goNextMonth">下月</t-button>
+              <t-button variant="outline" @click="calendarStore.goPrevMonth">上月</t-button>
+              <t-button theme="primary" variant="outline" @click="calendarStore.goToday">本月</t-button>
+              <t-button variant="outline" @click="calendarStore.goNextMonth">下月</t-button>
             </t-space>
             <span class="calendar-month">{{ monthLabel }}</span>
           </div>
 
           <t-calendar
-            :year="currentMonth.year()"
-            :month="currentMonthNumber"
+            :year="calendarStore.currentMonth.year()"
+            :month="calendarStore.currentMonthNumber"
             :fill-with-zero="true"
             @month-change="handlePanelChange"
           />
