@@ -3,9 +3,10 @@ import { toTypedSchema } from '@vee-validate/zod';
 import dayjs from 'dayjs';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { useForm } from 'vee-validate';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { plantFormSchema, type PlantFormValues } from '@/schemas/plantForm';
 import { usePlantsStore } from '@/stores/plants';
+import type { SortOrder } from '@/stores/plants';
 import type { UserPlant } from '@/types';
 
 const plantsStore = usePlantsStore();
@@ -14,6 +15,25 @@ const dialogVisible = ref(false);
 const editingId = ref<string | null>(null);
 const deleteConfirmVisible = ref(false);
 const deletingId = ref<string | null>(null);
+
+const searchKeyword = ref('');
+const sortOrder = ref<SortOrder>('desc');
+
+const sortOptions = [
+  { label: '添加日期 降序', value: 'desc' },
+  { label: '添加日期 升序', value: 'asc' },
+];
+
+watch(searchKeyword, (val) => {
+  plantsStore.setSearchKeyword(val);
+});
+
+watch(sortOrder, (val) => {
+  plantsStore.setSortOrder(val);
+});
+
+const displayData = computed(() => plantsStore.sortedItems);
+const hasNoMatches = computed(() => plantsStore.searchKeyword.trim() !== '' && displayData.value.length === 0);
 
 const isEditing = computed(() => editingId.value !== null);
 
@@ -123,11 +143,24 @@ function closeDialog() {
     </div>
 
     <div class="card-block">
+      <div class="filter-bar">
+        <t-input
+          v-model="searchKeyword"
+          placeholder="搜索植物名称或品种"
+          clearable
+          style="width: 280px"
+        />
+        <t-select
+          v-model="sortOrder"
+          :options="sortOptions"
+          style="width: 180px"
+        />
+      </div>
       <t-table
         row-key="id"
-        :data="plantsStore.items"
+        :data="displayData"
         :columns="tableColumns"
-        :empty="'暂无植物，点击右上角添加'"
+        :empty="hasNoMatches ? '暂无相关植物' : '暂无植物，点击右上角添加'"
         stripe
         hover
       >
@@ -197,6 +230,14 @@ function closeDialog() {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: center;
   flex-wrap: wrap;
 }
 </style>
