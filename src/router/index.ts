@@ -21,6 +21,12 @@ const router = createRouter({
       component: () => import('@/views/CareRecordsView.vue'),
       meta: { title: '养护记录' },
     },
+    {
+      path: '/city-compare',
+      name: 'city-compare',
+      component: () => import('@/views/CityCompareView.vue'),
+      meta: { title: '双城对比' },
+    },
   ],
 });
 

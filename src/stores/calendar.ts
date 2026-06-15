@@ -30,10 +30,28 @@ export const useCalendarStore = defineStore(
      * @param month - 月份 1–12
      */
     function getSuggestionForMonth(month: number): MonthSuggestion | null {
-      const citySuggestions = data.suggestions[selectedCityId.value];
+      return getSuggestionForCityPlantMonth(
+        selectedCityId.value,
+        selectedPlantId.value,
+        month,
+      );
+    }
+
+    /**
+     * 根据城市、植物和月份获取种植建议
+     * @param cityId - 城市 ID
+     * @param plantId - 植物 ID
+     * @param month - 月份 1–12
+     */
+    function getSuggestionForCityPlantMonth(
+      cityId: string,
+      plantId: string,
+      month: number,
+    ): MonthSuggestion | null {
+      const citySuggestions = data.suggestions[cityId];
       if (!citySuggestions) return null;
 
-      const plantSuggestions = citySuggestions[selectedPlantId.value];
+      const plantSuggestions = citySuggestions[plantId];
       if (!plantSuggestions) return null;
 
       return plantSuggestions[String(month)] ?? null;
@@ -61,6 +79,7 @@ export const useCalendarStore = defineStore(
       selectedCity,
       selectedPlant,
       getSuggestionForMonth,
+      getSuggestionForCityPlantMonth,
       setCity,
       setPlant,
     };
