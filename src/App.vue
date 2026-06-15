@@ -57,13 +57,14 @@ function handleMenuChange(value: string) {
 }
 
 .header-inner {
-  max-width: 1120px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 16px;
+  min-width: 0;
 }
 
 .brand {
@@ -71,6 +72,7 @@ function handleMenuChange(value: string) {
   align-items: center;
   gap: 8px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .brand-icon {
@@ -86,5 +88,39 @@ function handleMenuChange(value: string) {
 :deep(.t-head-menu) {
   flex: 1;
   justify-content: flex-end;
+  min-width: 0;
+}
+
+:deep(.t-head-menu .t-menu__item) {
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 0 14px;
+}
+
+@media (max-width: 1024px) {
+  .header-inner {
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  :deep(.t-head-menu .t-menu__item) {
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .brand-text {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  :deep(.t-head-menu .t-menu__item) {
+    padding: 0 8px;
+    font-size: 12px;
+  }
+
+  .brand-text {
+    font-size: 14px;
+  }
 }
 </style>

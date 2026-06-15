@@ -1,4 +1,4 @@
-import type { UserPlant, CareRecord, FavoriteCombination } from '@/types';
+import type { UserPlant } from '@/types';
 
 export const BACKUP_FILE_VERSION = 1;
 export const BACKUP_FILE_MAGIC = 'balcony-garden-backup';
@@ -14,8 +14,6 @@ export interface BackupData {
   version: typeof BACKUP_FILE_VERSION;
   exportedAt: string;
   plants: UserPlant[];
-  careRecords: CareRecord[];
-  favorites: FavoriteCombination[];
   preferences: BackupPreferences;
 }
 
@@ -30,17 +28,11 @@ export type ImportMode = 'merge' | 'overwrite';
 export interface ImportStats {
   plantsAdded: number;
   plantsUpdated: number;
-  careRecordsAdded: number;
-  careRecordsUpdated: number;
-  favoritesAdded: number;
-  favoritesUpdated: number;
   preferencesImported: boolean;
 }
 
 export function createBackupData(payload: {
   plants: UserPlant[];
-  careRecords: CareRecord[];
-  favorites: FavoriteCombination[];
   preferences: BackupPreferences;
 }): BackupData {
   return {
@@ -48,8 +40,6 @@ export function createBackupData(payload: {
     version: BACKUP_FILE_VERSION,
     exportedAt: new Date().toISOString(),
     plants: payload.plants,
-    careRecords: payload.careRecords,
-    favorites: payload.favorites,
     preferences: payload.preferences,
   };
 }
@@ -75,14 +65,6 @@ export function validateBackupData(raw: unknown): ValidateResult {
 
   if (!Array.isArray(obj.plants)) {
     return { valid: false, error: '备份文件格式无效：plants 字段必须是数组' };
-  }
-
-  if (!Array.isArray(obj.careRecords)) {
-    return { valid: false, error: '备份文件格式无效：careRecords 字段必须是数组' };
-  }
-
-  if (!Array.isArray(obj.favorites)) {
-    return { valid: false, error: '备份文件格式无效：favorites 字段必须是数组' };
   }
 
   if (obj.preferences === null || typeof obj.preferences !== 'object') {
@@ -113,40 +95,6 @@ export function validateBackupData(raw: unknown): ValidateResult {
     }
   }
 
-  for (const rec of obj.careRecords as unknown[]) {
-    if (rec === null || typeof rec !== 'object') {
-      return { valid: false, error: '备份文件格式无效：careRecords 数组中存在非对象项' };
-    }
-    const r = rec as Record<string, unknown>;
-    if (
-      typeof r.id !== 'string' ||
-      typeof r.plantId !== 'string' ||
-      typeof r.plantName !== 'string' ||
-      typeof r.date !== 'string' ||
-      typeof r.type !== 'string' ||
-      typeof r.remark !== 'string'
-    ) {
-      return { valid: false, error: '备份文件格式无效：careRecords 数组中存在字段缺失的项' };
-    }
-  }
-
-  for (const fav of obj.favorites as unknown[]) {
-    if (fav === null || typeof fav !== 'object') {
-      return { valid: false, error: '备份文件格式无效：favorites 数组中存在非对象项' };
-    }
-    const f = fav as Record<string, unknown>;
-    if (
-      typeof f.id !== 'string' ||
-      typeof f.cityId !== 'string' ||
-      typeof f.cityName !== 'string' ||
-      typeof f.plantId !== 'string' ||
-      typeof f.plantName !== 'string' ||
-      typeof f.createdAt !== 'string'
-    ) {
-      return { valid: false, error: '备份文件格式无效：favorites 数组中存在字段缺失的项' };
-    }
-  }
-
   return {
     valid: true,
     data: obj as unknown as BackupData,
@@ -154,11 +102,11 @@ export function validateBackupData(raw: unknown): ValidateResult {
 }
 
 export function downloadBackupFile(data: BackupData): void {
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
+  const content = JSON.stringify(data, null, 2);
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const dateStr = new Date(data.exportedAt).toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const filename = `balcony-garden-backup-${dateStr}.json`;
+  const filename = `balcony-garden-backup-${dateStr}.txt`;
 
   const a = document.createElement('a');
   a.href = url;
@@ -182,10 +130,6 @@ export function emptyImportStats(): ImportStats {
   return {
     plantsAdded: 0,
     plantsUpdated: 0,
-    careRecordsAdded: 0,
-    careRecordsUpdated: 0,
-    favoritesAdded: 0,
-    favoritesUpdated: 0,
     preferencesImported: false,
   };
 }

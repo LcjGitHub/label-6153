@@ -38,6 +38,10 @@ export const useCalendarStore = defineStore(
 
     const currentMonthNumber = computed(() => currentMonth.value.month() + 1);
 
+    /**
+     * 获取指定城市在列表中的下一个城市
+     * @param cityId - 当前城市 ID
+     */
     function getNextCityId(cityId: string): string {
       const idx = cities.value.findIndex((c) => c.id === cityId);
       if (idx === -1) return cities.value[0]?.id ?? '';
@@ -45,6 +49,10 @@ export const useCalendarStore = defineStore(
       return cities.value[nextIdx]?.id ?? '';
     }
 
+    /**
+     * 获取指定月份的种植建议
+     * @param month - 月份 1–12
+     */
     function getSuggestionForMonth(month: number): MonthSuggestion | null {
       return getSuggestionForCityPlantMonth(
         selectedCityId.value,
@@ -53,6 +61,12 @@ export const useCalendarStore = defineStore(
       );
     }
 
+    /**
+     * 根据城市、植物和月份获取种植建议
+     * @param cityId - 城市 ID
+     * @param plantId - 植物 ID
+     * @param month - 月份 1–12
+     */
     function getSuggestionForCityPlantMonth(
       cityId: string,
       plantId: string,
@@ -67,6 +81,10 @@ export const useCalendarStore = defineStore(
       return plantSuggestions[String(month)] ?? null;
     }
 
+    /**
+     * 按植物名称匹配目录植物
+     * @param plantName - 植物名称
+     */
     function findPlantByName(plantName: string): PlantCatalogItem | null {
       const trimmed = plantName.trim();
       return (
@@ -76,6 +94,12 @@ export const useCalendarStore = defineStore(
       );
     }
 
+    /**
+     * 根据城市、植物名称和月份获取种植建议（按名称匹配目录）
+     * @param cityId - 城市 ID
+     * @param plantName - 植物名称
+     * @param month - 月份 1–12
+     */
     function getSuggestionForCityPlantNameMonth(
       cityId: string,
       plantName: string,
@@ -87,30 +111,48 @@ export const useCalendarStore = defineStore(
       return { plant, suggestion };
     }
 
+    /**
+     * 设置选中的城市
+     */
     function setCity(cityId: string) {
       selectedCityId.value = cityId;
     }
 
+    /**
+     * 设置选中的植物
+     */
     function setPlant(plantId: string) {
       selectedPlantId.value = plantId;
     }
 
+    /**
+     * 切换到上一个月
+     */
     function goPrevMonth() {
       currentMonthISO.value = dayjs(currentMonthISO.value)
         .subtract(1, 'month')
         .toISOString();
     }
 
+    /**
+     * 切换到下一个月
+     */
     function goNextMonth() {
       currentMonthISO.value = dayjs(currentMonthISO.value)
         .add(1, 'month')
         .toISOString();
     }
 
+    /**
+     * 回到当月
+     */
     function goToday() {
       currentMonthISO.value = dayjs().toISOString();
     }
 
+    /**
+     * 日历面板切换月份
+     */
     function setPanelMonth(payload: { year: number; month: number }) {
       currentMonthISO.value = dayjs()
         .year(payload.year)
@@ -119,6 +161,9 @@ export const useCalendarStore = defineStore(
         .toISOString();
     }
 
+    /**
+     * 获取当前月历偏好（城市、植物、月份），用于备份导出
+     */
     function getPreferences(): BackupPreferences {
       return {
         selectedCityId: selectedCityId.value,
@@ -127,6 +172,11 @@ export const useCalendarStore = defineStore(
       };
     }
 
+    /**
+     * 导入月历偏好
+     * @param prefs - 待导入的偏好
+     * @returns 应用结果，包含城市/植物 ID 是否在当前目录中有效
+     */
     function importPreferences(
       prefs: BackupPreferences,
     ): CalendarPreferencesImportResult {
@@ -146,6 +196,9 @@ export const useCalendarStore = defineStore(
       return { applied, cityValid, plantValid };
     }
 
+    /**
+     * 重置月历偏好为默认值
+     */
     function resetPreferences(): void {
       selectedCityId.value = data.cities[0]?.id ?? '';
       selectedPlantId.value = data.plants[0]?.id ?? '';

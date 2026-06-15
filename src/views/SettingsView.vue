@@ -42,8 +42,6 @@ async function handleExport() {
   try {
     const backup = createBackupData({
       plants: plantsStore.getAll(),
-      careRecords: careRecordsStore.getAll(),
-      favorites: favoritesStore.getAll(),
       preferences: calendarStore.getPreferences(),
     });
 
@@ -58,14 +56,11 @@ async function handleExport() {
   }
 }
 
-async function handleFileSelect(e: Event) {
-  const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  input.value = '';
-
+async function handleFileSelect(files: File[]) {
+  const file = files?.[0];
   if (!file) return;
-  if (!file.name.toLowerCase().endsWith('.json')) {
-    MessagePlugin.error('请选择 .json 格式的备份文件');
+  if (!file.name.toLowerCase().endsWith('.txt')) {
+    MessagePlugin.error('请选择 .txt 格式的备份文件');
     return;
   }
 
@@ -107,14 +102,6 @@ function doConfirmedImport() {
     stats.plantsAdded = plantsResult.added;
     stats.plantsUpdated = plantsResult.updated;
 
-    const careResult = careRecordsStore.importCareRecords(data.careRecords, mode);
-    stats.careRecordsAdded = careResult.added;
-    stats.careRecordsUpdated = careResult.updated;
-
-    const favResult = favoritesStore.importFavorites(data.favorites, mode);
-    stats.favoritesAdded = favResult.added;
-    stats.favoritesUpdated = favResult.updated;
-
     const prefsResult = calendarStore.importPreferences(data.preferences);
     stats.preferencesImported = prefsResult.applied;
 
@@ -128,9 +115,7 @@ function doConfirmedImport() {
       : `（偏好未导入：城市${prefsResult.cityValid ? '' : '不'}有效 / 植物${prefsResult.plantValid ? '' : '不'}有效）`;
 
     MessagePlugin.success(
-      `导入成功（${modeText}）：植物 ${stats.plantsAdded + stats.plantsUpdated} 条、` +
-        `养护 ${stats.careRecordsAdded + stats.careRecordsUpdated} 条、` +
-        `收藏 ${stats.favoritesAdded + stats.favoritesUpdated} 条${prefsHint}`,
+      `导入成功（${modeText}）：植物 ${stats.plantsAdded + stats.plantsUpdated} 条${prefsHint}`,
     );
   } catch (err) {
     console.error('Import execution failed:', err);
@@ -166,6 +151,10 @@ function handleClearAllData() {
       dlg.hide();
     },
   });
+}
+
+function handleUploadChange(fileInfo: { files: File[] }) {
+  handleFileSelect(fileInfo.files);
 }
 </script>
 
@@ -209,7 +198,7 @@ function handleClearAllData() {
       </div>
       <div class="card-body">
         <p class="hint">
-          将所有植物数据、养护记录、收藏和月历偏好导出为本地 JSON 文件，可用于跨设备迁移或数据备份。
+          将我的植物清单与月历页城市植物选择偏好导出为本地 TXT 文本文件，可用于跨设备迁移或数据备份。
         </p>
         <div class="action-row">
           <t-button
@@ -232,17 +221,17 @@ function handleClearAllData() {
       </div>
       <div class="card-body">
         <p class="hint">
-          从之前导出的 JSON 备份文件中恢复数据。导入前会校验文件格式。
+          从之前导出的 TXT 备份文件中恢复植物数据与月历偏好。导入前会校验文件格式。
         </p>
 
         <div class="mode-selector">
-          <div class="mode-label">导入模式：</div>
+          <div class="mode-label">导入模式（仅作用于植物与月历偏好）：</div>
           <t-radio-group v-model="importMode" variant="default-filled">
             <t-radio-button value="merge">
               合并（保留现有数据，相同 ID 则更新）
             </t-radio-button>
             <t-radio-button value="overwrite">
-              覆盖（清空现有数据后再导入）
+              覆盖（清空现有植物与偏好后再导入）
             </t-radio-button>
           </t-radio-group>
         </div>
@@ -250,12 +239,12 @@ function handleClearAllData() {
         <div class="action-row">
           <t-upload
             :theme="'file'"
-            :accept="'.json'"
+            :accept="'.txt'"
             :multiple="false"
             :auto-upload="false"
             :show-file-list="false"
-            :tips="'仅接受 .json 格式的备份文件'"
-            @change="handleFileSelect"
+            :tips="'仅接受 .txt 格式的备份文件'"
+            @add="handleUploadChange"
           >
             <t-button theme="success" :loading="isImporting">
               <template #icon>
@@ -270,8 +259,6 @@ function handleClearAllData() {
           <div class="result-title">最近一次导入结果：</div>
           <ul class="result-list">
             <li>🌱 植物：新增 {{ lastImportStats.plantsAdded }}，更新 {{ lastImportStats.plantsUpdated }}</li>
-            <li>💧 养护记录：新增 {{ lastImportStats.careRecordsAdded }}，更新 {{ lastImportStats.careRecordsUpdated }}</li>
-            <li>⭐ 收藏：新增 {{ lastImportStats.favoritesAdded }}，更新 {{ lastImportStats.favoritesUpdated }}</li>
             <li>📅 月历偏好：{{ lastImportStats.preferencesImported ? '已恢复' : '未恢复' }}</li>
           </ul>
         </div>
@@ -312,10 +299,10 @@ function handleClearAllData() {
     >
       <div v-if="pendingImportData" class="confirm-content">
         <p v-if="importMode === 'overwrite'" class="danger-text">
-          ⚠️ 覆盖模式将<strong>清空所有现有数据</strong>，用备份文件中的内容完全替换。
+          ⚠️ 覆盖模式将<strong>清空现有植物与月历偏好</strong>，用备份文件中的内容完全替换（养护记录与收藏不受影响）。
         </p>
         <p v-else>
-          合并模式将保留现有数据，备份中相同 ID 的条目会更新现有内容。
+          合并模式将保留现有植物与月历偏好，备份中相同 ID 的条目会更新现有内容（养护记录与收藏不受影响）。
         </p>
         <div class="confirm-stats">
           <div class="confirm-stat">
@@ -327,14 +314,6 @@ function handleClearAllData() {
           <div class="confirm-stat">
             <span class="confirm-stat-label">🌱 植物条目：</span>
             <span class="confirm-stat-value">{{ pendingImportData.plants.length }} 条</span>
-          </div>
-          <div class="confirm-stat">
-            <span class="confirm-stat-label">💧 养护记录：</span>
-            <span class="confirm-stat-value">{{ pendingImportData.careRecords.length }} 条</span>
-          </div>
-          <div class="confirm-stat">
-            <span class="confirm-stat-label">⭐ 收藏组合：</span>
-            <span class="confirm-stat-value">{{ pendingImportData.favorites.length }} 条</span>
           </div>
           <div class="confirm-stat">
             <span class="confirm-stat-label">📅 月历偏好：</span>
