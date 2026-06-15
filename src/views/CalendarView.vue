@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { MessagePlugin } from 'tdesign-vue-next';
 import { useCalendarStore } from '@/stores/calendar';
+import { useFavoritesStore } from '@/stores/favorites';
 
 const calendarStore = useCalendarStore();
+const favoritesStore = useFavoritesStore();
 
 const monthLabel = computed(() =>
   calendarStore.currentMonth.format('YYYY 年 M 月'),
@@ -26,11 +29,43 @@ const plantOptions = computed(() =>
   })),
 );
 
+const isCurrentFavorite = computed(() =>
+  favoritesStore.isFavorite(
+    calendarStore.selectedCityId,
+    calendarStore.selectedPlantId,
+  ),
+);
+
 /**
  * 日历面板切换月份
  */
 function handlePanelChange(payload: { year: number; month: number }) {
   calendarStore.setPanelMonth(payload);
+}
+
+/**
+ * 添加当前组合到收藏
+ */
+function handleAddFavorite() {
+  const city = calendarStore.selectedCity;
+  const plant = calendarStore.selectedPlant;
+  if (!city || !plant) {
+    MessagePlugin.warning('请先选择城市和植物');
+    return;
+  }
+
+  const result = favoritesStore.addFavorite({
+    cityId: city.id,
+    cityName: city.name,
+    plantId: plant.id,
+    plantName: plant.name,
+  });
+
+  if (result) {
+    MessagePlugin.success('已加入收藏');
+  } else {
+    MessagePlugin.info('该组合已在收藏中');
+  }
 }
 </script>
 
@@ -64,6 +99,15 @@ function handlePanelChange(payload: { year: number; month: number }) {
               />
             </t-form-item>
           </t-form>
+
+          <t-button
+            :theme="isCurrentFavorite ? 'default' : 'warning'"
+            variant="outline"
+            block
+            @click="handleAddFavorite"
+          >
+            {{ isCurrentFavorite ? '★ 已收藏' : '☆ 加入收藏' }}
+          </t-button>
 
           <t-divider />
 

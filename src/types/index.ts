@@ -40,6 +40,16 @@ export interface CareRecord {
   remark: string;
 }
 
+/** 收藏组合 */
+export interface FavoriteCombination {
+  id: string;
+  cityId: string;
+  cityName: string;
+  plantId: string;
+  plantName: string;
+  createdAt: string;
+}
+
 /** 种植月历 Mock 数据结构 */
 export interface PlantingCalendarData {
   cities: City[];

@@ -27,6 +27,12 @@ const router = createRouter({
       component: () => import('@/views/CityCompareView.vue'),
       meta: { title: '双城对比' },
     },
+    {
+      path: '/favorites',
+      name: 'favorites',
+      component: () => import('@/views/FavoritesView.vue'),
+      meta: { title: '我的收藏' },
+    },
   ],
 });
 
