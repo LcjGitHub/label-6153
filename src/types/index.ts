@@ -27,6 +27,19 @@ export interface UserPlant {
   addedAt: string;
 }
 
+/** 养护类型 */
+export type CareType = 'water' | 'fertilize' | 'repot';
+
+/** 养护记录 */
+export interface CareRecord {
+  id: string;
+  plantId: string;
+  plantName: string;
+  date: string;
+  type: CareType;
+  remark: string;
+}
+
 /** 种植月历 Mock 数据结构 */
 export interface PlantingCalendarData {
   cities: City[];

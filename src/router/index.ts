@@ -15,6 +15,12 @@ const router = createRouter({
       component: () => import('@/views/MyPlantsView.vue'),
       meta: { title: '我的植物' },
     },
+    {
+      path: '/care-records',
+      name: 'care-records',
+      component: () => import('@/views/CareRecordsView.vue'),
+      meta: { title: '养护记录' },
+    },
   ],
 });
 
