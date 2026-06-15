@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import dayjs from 'dayjs';
 import { computed, ref } from 'vue';
 import calendarData from '@/mock/planting-calendar.json';
-import type { MonthSuggestion, PlantingCalendarData } from '@/types';
+import type { MonthSuggestion, PlantCatalogItem, PlantingCalendarData } from '@/types';
 
 const data = calendarData as PlantingCalendarData;
 
@@ -75,6 +75,36 @@ export const useCalendarStore = defineStore(
     }
 
     /**
+     * 按植物名称匹配目录植物
+     * @param plantName - 植物名称
+     */
+    function findPlantByName(plantName: string): PlantCatalogItem | null {
+      const trimmed = plantName.trim();
+      return (
+        plants.value.find((p) => p.name === trimmed) ??
+        plants.value.find((p) => trimmed.includes(p.name) || p.name.includes(trimmed)) ??
+        null
+      );
+    }
+
+    /**
+     * 根据城市、植物名称和月份获取种植建议（按名称匹配目录）
+     * @param cityId - 城市 ID
+     * @param plantName - 植物名称
+     * @param month - 月份 1–12
+     */
+    function getSuggestionForCityPlantNameMonth(
+      cityId: string,
+      plantName: string,
+      month: number,
+    ): { plant: PlantCatalogItem | null; suggestion: MonthSuggestion | null } {
+      const plant = findPlantByName(plantName);
+      if (!plant) return { plant: null, suggestion: null };
+      const suggestion = getSuggestionForCityPlantMonth(cityId, plant.id, month);
+      return { plant, suggestion };
+    }
+
+    /**
      * 设置选中的城市
      */
     function setCity(cityId: string) {
@@ -137,6 +167,8 @@ export const useCalendarStore = defineStore(
       getNextCityId,
       getSuggestionForMonth,
       getSuggestionForCityPlantMonth,
+      findPlantByName,
+      getSuggestionForCityPlantNameMonth,
       setCity,
       setPlant,
       goPrevMonth,

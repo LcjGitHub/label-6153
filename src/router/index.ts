@@ -10,6 +10,12 @@ const router = createRouter({
       meta: { title: '月历建议' },
     },
     {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('@/views/DashboardView.vue'),
+      meta: { title: '植物总览看板' },
+    },
+    {
       path: '/my-plants',
       name: 'my-plants',
       component: () => import('@/views/MyPlantsView.vue'),
