@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import type { FavoriteCombination } from '@/types';
+import type { ImportMode } from '@/utils/importExport';
+
+export interface FavoritesImportResult {
+  added: number;
+  updated: number;
+}
 
 export const useFavoritesStore = defineStore(
   'favorites',
@@ -53,6 +59,46 @@ export const useFavoritesStore = defineStore(
       return items.value.find((item) => item.id === id) ?? null;
     }
 
+    function getAll(): FavoriteCombination[] {
+      return [...items.value];
+    }
+
+    function replaceAll(newItems: FavoriteCombination[]): void {
+      items.value = [...newItems];
+    }
+
+    function importFavorites(
+      incoming: FavoriteCombination[],
+      mode: ImportMode,
+    ): FavoritesImportResult {
+      const result: FavoritesImportResult = { added: 0, updated: 0 };
+
+      if (mode === 'overwrite') {
+        items.value = [...incoming];
+        result.added = incoming.length;
+        return result;
+      }
+
+      for (const fav of incoming) {
+        const existingIdx = items.value.findIndex(
+          (item) => item.cityId === fav.cityId && item.plantId === fav.plantId,
+        );
+        if (existingIdx === -1) {
+          items.value.push({ ...fav });
+          result.added++;
+        } else {
+          items.value[existingIdx] = { ...fav };
+          result.updated++;
+        }
+      }
+
+      return result;
+    }
+
+    function clearAll(): void {
+      items.value = [];
+    }
+
     return {
       items,
       sortedItems,
@@ -60,6 +106,10 @@ export const useFavoritesStore = defineStore(
       addFavorite,
       removeFavorite,
       findById,
+      getAll,
+      replaceAll,
+      importFavorites,
+      clearAll,
     };
   },
   {

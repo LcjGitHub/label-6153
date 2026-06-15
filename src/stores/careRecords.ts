@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import type { CareRecord } from '@/types';
+import type { ImportMode } from '@/utils/importExport';
+
+export interface CareRecordsImportResult {
+  added: number;
+  updated: number;
+}
 
 export const useCareRecordsStore = defineStore(
   'careRecords',
@@ -32,12 +38,61 @@ export const useCareRecordsStore = defineStore(
       return items.value.find((r) => r.id === id) ?? null;
     }
 
+    function getAll(): CareRecord[] {
+      return [...items.value];
+    }
+
+    function replaceAll(newItems: CareRecord[]): void {
+      items.value = [...newItems];
+    }
+
+    function importCareRecords(
+      incoming: CareRecord[],
+      mode: ImportMode,
+    ): CareRecordsImportResult {
+      const result: CareRecordsImportResult = { added: 0, updated: 0 };
+
+      if (mode === 'overwrite') {
+        items.value = [...incoming];
+        result.added = incoming.length;
+        return result;
+      }
+
+      for (const record of incoming) {
+        const existingIdx = items.value.findIndex((r) => r.id === record.id);
+        if (existingIdx === -1) {
+          items.value.push({ ...record });
+          result.added++;
+        } else {
+          items.value[existingIdx] = { ...record };
+          result.updated++;
+        }
+      }
+
+      return result;
+    }
+
+    function clearAll(): void {
+      items.value = [];
+    }
+
+    function removeByPlantId(plantId: string): number {
+      const before = items.value.length;
+      items.value = items.value.filter((r) => r.plantId !== plantId);
+      return before - items.value.length;
+    }
+
     return {
       items,
       sortedItems,
       addRecord,
       removeRecord,
       findById,
+      getAll,
+      replaceAll,
+      importCareRecords,
+      clearAll,
+      removeByPlantId,
     };
   },
   {
