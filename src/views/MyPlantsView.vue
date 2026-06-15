@@ -3,11 +3,12 @@ import { toTypedSchema } from '@vee-validate/zod';
 import dayjs from 'dayjs';
 import { MessagePlugin } from 'tdesign-vue-next';
 import { useForm } from 'vee-validate';
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { plantFormSchema, type PlantFormValues } from '@/schemas/plantForm';
 import { usePlantsStore } from '@/stores/plants';
-import type { SortOrder } from '@/stores/plants';
 import type { UserPlant } from '@/types';
+
+type SortOrder = 'asc' | 'desc';
 
 const plantsStore = usePlantsStore();
 
@@ -24,16 +25,24 @@ const sortOptions = [
   { label: '添加日期 升序', value: 'asc' },
 ];
 
-watch(searchKeyword, (val) => {
-  plantsStore.setSearchKeyword(val);
+const displayData = computed(() => {
+  const keyword = searchKeyword.value.trim().toLowerCase();
+  let list = plantsStore.items;
+
+  if (keyword) {
+    list = list.filter((plant) => plant.name.toLowerCase().includes(keyword));
+  }
+
+  return [...list].sort((a, b) => {
+    const dateA = new Date(a.addedAt).getTime();
+    const dateB = new Date(b.addedAt).getTime();
+    return sortOrder.value === 'asc' ? dateA - dateB : dateB - dateA;
+  });
 });
 
-watch(sortOrder, (val) => {
-  plantsStore.setSortOrder(val);
-});
-
-const displayData = computed(() => plantsStore.sortedItems);
-const hasNoMatches = computed(() => plantsStore.searchKeyword.trim() !== '' && displayData.value.length === 0);
+const hasNoMatches = computed(
+  () => searchKeyword.value.trim() !== '' && displayData.value.length === 0,
+);
 
 const isEditing = computed(() => editingId.value !== null);
 
@@ -146,7 +155,7 @@ function closeDialog() {
       <div class="filter-bar">
         <t-input
           v-model="searchKeyword"
-          placeholder="搜索植物名称或品种"
+          placeholder="搜索植物名称"
           clearable
           style="width: 280px"
         />

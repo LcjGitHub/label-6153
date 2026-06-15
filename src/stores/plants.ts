@@ -1,9 +1,7 @@
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import type { UserPlant } from '@/types';
 import type { ImportMode } from '@/utils/importExport';
-
-export type SortOrder = 'asc' | 'desc';
 
 export interface PlantsImportResult {
   added: number;
@@ -17,47 +15,6 @@ export const usePlantsStore = defineStore(
   'plants',
   () => {
     const items = ref<UserPlant[]>([]);
-    const searchKeyword = ref('');
-    const sortOrder = ref<SortOrder>('desc');
-
-    /**
-     * 过滤后的植物列表（按名称关键字）
-     */
-    const filteredItems = computed(() => {
-      const keyword = searchKeyword.value.trim().toLowerCase();
-      if (!keyword) return items.value;
-      return items.value.filter(
-        (plant) =>
-          plant.name.toLowerCase().includes(keyword) ||
-          plant.variety.toLowerCase().includes(keyword),
-      );
-    });
-
-    /**
-     * 过滤并排序后的植物列表
-     */
-    const sortedItems = computed(() => {
-      const list = [...filteredItems.value];
-      return list.sort((a, b) => {
-        const dateA = new Date(a.addedAt).getTime();
-        const dateB = new Date(b.addedAt).getTime();
-        return sortOrder.value === 'asc' ? dateA - dateB : dateB - dateA;
-      });
-    });
-
-    /**
-     * 设置搜索关键字
-     */
-    function setSearchKeyword(keyword: string) {
-      searchKeyword.value = keyword;
-    }
-
-    /**
-     * 设置排序方式
-     */
-    function setSortOrder(order: SortOrder) {
-      sortOrder.value = order;
-    }
 
     /**
      * 新增植物
@@ -154,12 +111,6 @@ export const usePlantsStore = defineStore(
 
     return {
       items,
-      searchKeyword,
-      sortOrder,
-      filteredItems,
-      sortedItems,
-      setSearchKeyword,
-      setSortOrder,
       addPlant,
       updatePlant,
       removePlant,
