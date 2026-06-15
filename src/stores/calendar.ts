@@ -172,7 +172,6 @@ export const useCalendarStore = defineStore(
     function goToday() {
       const today = dayjs();
       currentMonthISO.value = today.toISOString();
-      selectedDateISO.value = today.toISOString();
     }
 
     /**

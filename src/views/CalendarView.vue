@@ -52,16 +52,22 @@ function handlePanelChange(payload: { year: number; month: number }) {
 }
 
 /**
- * 点击日历中的具体日期
+ * 点击日历单元格
  */
-function handleSelectDate(payload: { year: number; month: number; date: number }) {
-  const dateISO = dayjs()
-    .year(payload.year)
-    .month(payload.month - 1)
-    .date(payload.date)
-    .toISOString();
+function handleCellClick(payload: {
+  date: Date;
+  year: number;
+  month: number;
+  day: number;
+  dateStr: string;
+}) {
+  const dateISO = dayjs(payload.date).toISOString();
   calendarStore.setSelectedDate(dateISO);
 }
+
+const selectedDateStr = computed(() =>
+  calendarStore.selectedDate ? calendarStore.selectedDate.format('YYYY-MM-DD') : '',
+);
 
 /**
  * 添加当前组合到收藏
@@ -158,9 +164,10 @@ function handleAddFavorite() {
           <t-calendar
             :year="calendarStore.currentMonth.year()"
             :month="calendarStore.currentMonthNumber"
+            :value="selectedDateStr"
             :fill-with-zero="true"
             @month-change="handlePanelChange"
-            @select="handleSelectDate"
+            @cell-click="handleCellClick"
           />
 
           <t-divider />
