@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+const MAX_TAG_COUNT = 3;
+const MAX_TAG_LENGTH = 6;
+
 /**
  * 植物表单 Zod 校验 Schema
  */
@@ -24,6 +27,17 @@ export const plantFormSchema = z.object({
     .max(100, '备注不超过一百字')
     .optional()
     .or(z.literal('')),
+  tags: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1, '标签内容不能为空')
+        .max(MAX_TAG_LENGTH, `单个标签不超过 ${MAX_TAG_LENGTH} 个字`),
+    )
+    .max(MAX_TAG_COUNT, `最多添加 ${MAX_TAG_COUNT} 个标签`)
+    .optional()
+    .default([]),
 });
 
 export type PlantFormValues = z.infer<typeof plantFormSchema>;
