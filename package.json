@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "type-check": "vue-tsc --noEmit",
+    "build-only": "vite build",
+    "preview": "vite preview",
+    "ci": "npm ci && npm run type-check && npm run build-only"
   },
   "dependencies": {
     "@vee-validate/zod": "^4.15.0",
