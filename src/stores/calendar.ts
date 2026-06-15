@@ -162,6 +162,21 @@ export const useCalendarStore = defineStore(
     }
 
     /**
+     * 按植物名称选中目录中的植物
+     * @param plantName - 植物名称
+     * @returns 是否匹配成功
+     */
+    function setPlantByName(plantName: string): boolean {
+      const plant = findPlantByName(plantName);
+      if (plant) {
+        selectedPlantId.value = plant.id;
+        selectedCategory.value = plant.category;
+        return true;
+      }
+      return false;
+    }
+
+    /**
      * 设置选中的植物分类
      * 若当前已选植物不在该分类内则自动切换为该分类下第一个植物
      */
@@ -356,6 +371,7 @@ export const useCalendarStore = defineStore(
       getSuggestionForCityPlantNameMonth,
       setCity,
       setPlant,
+      setPlantByName,
       setCategory,
       setSelectedDate,
       goPrevMonth,

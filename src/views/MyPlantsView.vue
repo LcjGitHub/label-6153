@@ -2,6 +2,7 @@
 import { toTypedSchema } from '@vee-validate/zod';
 import dayjs from 'dayjs';
 import { MessagePlugin } from 'tdesign-vue-next';
+import { useRouter } from 'vue-router';
 import { useForm } from 'vee-validate';
 import { computed, ref } from 'vue';
 import { plantFormSchema, type PlantFormValues } from '@/schemas/plantForm';
@@ -11,6 +12,7 @@ import type { UserPlant } from '@/types';
 type SortOrder = 'asc' | 'desc';
 
 const plantsStore = usePlantsStore();
+const router = useRouter();
 
 const dialogVisible = ref(false);
 const editingId = ref<string | null>(null);
@@ -68,7 +70,7 @@ const tableColumns = [
   { colKey: 'variety', title: '品种', width: 160 },
   { colKey: 'addedAt', title: '添加日期', width: 140 },
   { colKey: 'remark', title: '备注', ellipsis: true },
-  { colKey: 'operation', title: '操作', width: 160 },
+  { colKey: 'operation', title: '操作', width: 220 },
 ];
 
 /**
@@ -138,6 +140,16 @@ function confirmDelete() {
 }
 
 /**
+ * 跳转到月历页并尝试自动选中同名植物
+ */
+function goToCalendar(plantName: string) {
+  router.push({
+    name: 'calendar',
+    query: { plantName },
+  });
+}
+
+/**
  * 关闭表单对话框
  */
 function closeDialog() {
@@ -183,6 +195,7 @@ function closeDialog() {
         </template>
         <template #operation="{ row }">
           <t-space>
+            <t-link theme="primary" @click="goToCalendar(row.name)">查看月历</t-link>
             <t-link theme="primary" @click="openEditDialog(row)">编辑</t-link>
             <t-link theme="danger" @click="openDeleteConfirm(row.id)">删除</t-link>
           </t-space>

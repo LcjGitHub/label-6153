@@ -1,16 +1,33 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { MessagePlugin } from 'tdesign-vue-next';
 import dayjs from 'dayjs';
+import { useRoute } from 'vue-router';
 import { useCalendarStore } from '@/stores/calendar';
 import { useFavoritesStore } from '@/stores/favorites';
 
 const calendarStore = useCalendarStore();
 const favoritesStore = useFavoritesStore();
+const route = useRoute();
+
+const plantMatchFailed = ref(false);
+const failedPlantName = ref('');
 
 onMounted(() => {
   calendarStore.ensureConsistencyAfterHydrate();
+  handlePlantNameFromRoute();
 });
+
+function handlePlantNameFromRoute() {
+  const plantName = route.query.plantName;
+  if (typeof plantName === 'string' && plantName.trim()) {
+    const matched = calendarStore.setPlantByName(plantName);
+    if (!matched) {
+      failedPlantName.value = plantName;
+      plantMatchFailed.value = true;
+    }
+  }
+}
 
 const monthLabel = computed(() =>
   calendarStore.currentMonth.format('YYYY 年 M 月'),
@@ -109,6 +126,15 @@ function handleAddFavorite() {
 
 <template>
   <div class="page-container">
+    <t-alert
+      v-if="plantMatchFailed"
+      theme="warning"
+      :message="`未找到名为「${failedPlantName}」的植物，请在下方手动选择`"
+      closable
+      @close="plantMatchFailed = false"
+      style="margin-bottom: 16px"
+    />
+
     <h1 class="page-title">种植月历建议</h1>
     <p class="page-desc">
       选择所在城市与植物，查看当月播种、浇水与施肥 Mock 建议（数据来自本地 Mock）。
