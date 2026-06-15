@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import dayjs from 'dayjs';
 import { computed } from 'vue';
 import { useCalendarStore } from '@/stores/calendar';
 import { usePlantsStore } from '@/stores/plants';
@@ -10,6 +11,14 @@ const plantsStore = usePlantsStore();
 const monthLabel = computed(() =>
   calendarStore.currentMonth.format('YYYY 年 M 月'),
 );
+
+const isViewingCurrentMonth = computed(() => {
+  const now = dayjs();
+  return (
+    calendarStore.currentMonth.year() === now.year() &&
+    calendarStore.currentMonth.month() === now.month()
+  );
+});
 
 const cityOptions = computed(() =>
   calendarStore.cities.map((city) => ({
@@ -73,7 +82,11 @@ const hasPlants = computed(() => plantsStore.items.length > 0);
               <t-tag theme="default" variant="outline" class="month-display">
                 {{ monthLabel }}
               </t-tag>
-              <t-button theme="primary" variant="outline" @click="calendarStore.goToday">
+              <t-button
+                :theme="isViewingCurrentMonth ? 'primary' : 'default'"
+                variant="outline"
+                @click="calendarStore.goToday"
+              >
                 本月
               </t-button>
               <t-button variant="outline" @click="calendarStore.goNextMonth">
@@ -142,7 +155,7 @@ const hasPlants = computed(() => plantsStore.items.length > 0);
             </div>
           </div>
           <div v-else class="no-suggestion">
-            <t-empty description="暂无月历建议" size="small" />
+            <t-empty title="暂无月历建议" :description="null" size="small" />
           </div>
         </t-card>
       </div>
