@@ -20,7 +20,8 @@ export const plantFormSchema = z.object({
     .refine((value) => !Number.isNaN(Date.parse(value)), '添加日期格式无效'),
   remark: z
     .string()
-    .max(100, '备注不超过 100 个字符')
+    .trim()
+    .max(100, '备注不超过一百字')
     .optional()
     .or(z.literal('')),
 });

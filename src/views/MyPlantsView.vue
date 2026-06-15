@@ -30,11 +30,7 @@ const displayData = computed(() => {
   let list = plantsStore.items;
 
   if (keyword) {
-    list = list.filter(
-      (plant) =>
-        plant.name.toLowerCase().includes(keyword) ||
-        (plant.remark && plant.remark.toLowerCase().includes(keyword)),
-    );
+    list = list.filter((plant) => plant.name.toLowerCase().includes(keyword));
   }
 
   return [...list].sort((a, b) => {
@@ -225,11 +221,11 @@ function closeDialog() {
         <t-form-item label="备注" :status="errors.remark ? 'error' : undefined" :tips="errors.remark">
           <t-textarea
             v-model="remark"
-            v-bind="remarkAttrs"
-            placeholder="请输入备注（最多 100 字）"
+            placeholder="请输入备注（最多一百字）"
             :maxlength="100"
             :autosize="{ minRows: 3, maxRows: 5 }"
-            allow-input-over-max
+            @blur="remarkAttrs.onBlur"
+            @change="remarkAttrs.onChange"
           />
         </t-form-item>
 
