@@ -18,6 +18,11 @@ export const plantFormSchema = z.object({
     .string({ required_error: '请选择添加日期' })
     .min(1, '请选择添加日期')
     .refine((value) => !Number.isNaN(Date.parse(value)), '添加日期格式无效'),
+  remark: z
+    .string()
+    .max(100, '备注不超过 100 个字符')
+    .optional()
+    .or(z.literal('')),
 });
 
 export type PlantFormValues = z.infer<typeof plantFormSchema>;

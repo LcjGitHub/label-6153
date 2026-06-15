@@ -25,6 +25,7 @@ export interface UserPlant {
   name: string;
   variety: string;
   addedAt: string;
+  remark?: string;
 }
 
 /** 养护类型 */

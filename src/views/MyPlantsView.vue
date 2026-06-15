@@ -30,7 +30,11 @@ const displayData = computed(() => {
   let list = plantsStore.items;
 
   if (keyword) {
-    list = list.filter((plant) => plant.name.toLowerCase().includes(keyword));
+    list = list.filter(
+      (plant) =>
+        plant.name.toLowerCase().includes(keyword) ||
+        (plant.remark && plant.remark.toLowerCase().includes(keyword)),
+    );
   }
 
   return [...list].sort((a, b) => {
@@ -54,17 +58,20 @@ const { defineField, handleSubmit, resetForm, setValues, errors } = useForm({
     name: '',
     variety: '',
     addedAt: dayjs().format('YYYY-MM-DD'),
+    remark: '',
   },
 });
 
 const [name, nameAttrs] = defineField('name');
 const [variety, varietyAttrs] = defineField('variety');
 const [addedAt, addedAtAttrs] = defineField('addedAt');
+const [remark, remarkAttrs] = defineField('remark');
 
 const tableColumns = [
   { colKey: 'name', title: '名称', width: 140 },
   { colKey: 'variety', title: '品种', width: 160 },
   { colKey: 'addedAt', title: '添加日期', width: 140 },
+  { colKey: 'remark', title: '备注', ellipsis: true },
   { colKey: 'operation', title: '操作', width: 160 },
 ];
 
@@ -78,6 +85,7 @@ function openCreateDialog() {
       name: '',
       variety: '',
       addedAt: dayjs().format('YYYY-MM-DD'),
+      remark: '',
     },
   });
   dialogVisible.value = true;
@@ -92,6 +100,7 @@ function openEditDialog(plant: UserPlant) {
     name: plant.name,
     variety: plant.variety,
     addedAt: plant.addedAt,
+    remark: plant.remark || '',
   });
   dialogVisible.value = true;
 }
@@ -210,6 +219,17 @@ function closeDialog() {
             value-type="YYYY-MM-DD"
             style="width: 100%"
             clearable
+          />
+        </t-form-item>
+
+        <t-form-item label="备注" :status="errors.remark ? 'error' : undefined" :tips="errors.remark">
+          <t-textarea
+            v-model="remark"
+            v-bind="remarkAttrs"
+            placeholder="请输入备注（最多 100 字）"
+            :maxlength="100"
+            :autosize="{ minRows: 3, maxRows: 5 }"
+            allow-input-over-max
           />
         </t-form-item>
 
